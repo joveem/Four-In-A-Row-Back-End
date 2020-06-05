@@ -9,7 +9,7 @@ exports.OnUsersStart = function () {
             email: "joveem@gmail.com",
             password: "123321"
         }, {
-            is: "1002",
+            id: "1002",
             nick: "lysgd",
             email: "lysgd@gmail.com",
             password: "123123"
@@ -41,7 +41,7 @@ exports.GetUserByUsername = function (username_) {
 
     users.map(function (value) {
 
-        if (username_ == value.nick || username_ == value.email) {
+        if (username_ == value.username || username_ == value.email) {
 
             user_ = value;
 
