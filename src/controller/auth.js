@@ -16,7 +16,7 @@ router.post("/login", /* async */ function(req, res){
         if( user.password == password ){
 
             // send code for user authenticated (1) + user id 
-            res.send("1," + user.id);
+            res.send("1," + user.id + "," + user.nick);
 
         }else{
 

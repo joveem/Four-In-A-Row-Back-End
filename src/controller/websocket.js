@@ -1,11 +1,7 @@
 var socket_io = require('socket.io');
 
-var { AddConnection, SetUpConnectionMinigame, RemoveConnection, GetFiarPublicQueue, SetFiarPublicQueue, FiarQueuePlayer, FiarAddGame } = require('../model/socket_connections');
-
-var connections = [];
-var fiar_public_queue = [];
-
-var games = [];
+var { AddConnection, GetConnectionById, SetUpConnectionMinigame, RemoveConnection, GetFiarPublicQueue, SetFiarPublicQueue, FiarQueuePlayer, FiarAddGame } = require('../model/socket_connections');
+var { GetUserById } = require('../model/users');
 
 var io;
 
@@ -16,8 +12,6 @@ exports.setUpWebSockets = function (server) {
     io.on('connection', function (socket) {
 
         AddConnection(socket.id);
-
-        console.log("- CONNECTION ( " + connections.length + " players connected )");
 
         socket.emit("connecting", {});
 
@@ -31,7 +25,7 @@ exports.setUpWebSockets = function (server) {
 
         socket.on("fiar-enter-random-room", function (pack) {
 
-            FiarQueuePlayer(socket.id, pack.langs);
+            FiarQueuePlayer(socket.id, GetUserById(GetConnectionById(socket.id).player_infos.id).nick, pack.langs);/////////////////////////////////
 
         })
 
@@ -44,6 +38,13 @@ exports.setUpWebSockets = function (server) {
         socket.on("send-piece-move-to-server", function (pack) {
 
             socket.broadcast.emit("send-piece-move-to-client", pack);
+
+        })
+
+        socket.on("send-message-to-server", function (pack) {
+
+            socket.emit("send-message-to-client", pack);
+            socket.broadcast.emit("send-message-to-client", pack);
 
         })
 
@@ -77,17 +78,11 @@ exports.FiarDealWithPublicQueue = function () {
 
                         var intersection = value_2.langs.filter(function (x) {
 
-                            console.log("--- " + x + " : " + value_1.langs[value_1.langs.indexOf(x)]);
-
                             if (value_1.langs.indexOf(x) != -1) {
-
-                                console.log("-/- " + x + " : " + value_1.langs[value_1.langs.indexOf(x)]);
 
                                 return true;
 
                             } else {
-
-                                console.log("-\\- " + x + " : " + value_1.langs[value_1.langs.indexOf(x)]);
 
                                 return false;
 
@@ -99,14 +94,16 @@ exports.FiarDealWithPublicQueue = function () {
 
                         if (intersection.length != 0) {
 
-                            console.log("--- TRUE")
-
                             value_1.combined = true;
                             value_2.combined = true;
 
                             matchs.push({
+
                                 socket_id_1: value_1.socket_id,
-                                socket_id_2: value_2.socket_id
+                                socket_id_2: value_2.socket_id,
+                                player_1_nick: value_1.nick,
+                                player_2_nick: value_2.nick
+
                             })
 
                             socket_ids_to_remove.push(value_1.socket_id, value_2.socket_id);
@@ -125,28 +122,38 @@ exports.FiarDealWithPublicQueue = function () {
 
     matchs.map(function (value) {
 
-        io.to(value.socket_id_1).emit("open-game", { player_number: 1 });
-        io.to(value.socket_id_2).emit("open-game", { player_number: 2 });
+        console.log("- - - " + value.player_1_nick + " - " + value.player_2_nick)
+
+        var player_1_pack = {
+
+            player_number: 1,
+            player_1_nick: value.player_1_nick,
+            player_2_nick: value.player_2_nick
+
+        };
+
+        var player_2_pack = {
+
+            player_number: 2,
+            player_1_nick: value.player_1_nick,
+            player_2_nick: value.player_2_nick
+
+        };
+
+        io.to(value.socket_id_1).emit("open-game", player_1_pack);
+        io.to(value.socket_id_2).emit("open-game", player_2_pack);
+
+        console.log(player_1_pack);
+        console.log(player_2_pack);
 
         var room_name = value.socket_id_1 + "-" + value.socket_id_2;
 
         io.sockets.connected[value.socket_id_1].join(room_name);
         io.sockets.connected[value.socket_id_2].join(room_name);
 
-        io.sockets.connected[value.socket_id_1].join("room 2");
-        io.sockets.connected[value.socket_id_1].join("room 3");
-        io.sockets.connected[value.socket_id_1].join("room 4");
-
-        console.log("------")
-        console.log(io.sockets.connected[value.socket_id_1].rooms)
-        let rooms = Object.keys(io.sockets.connected[value.socket_id_1].rooms);
-        console.log("------")
-        console.log(rooms);
-        console.log("------")
-
         FiarAddGame(room_name);
 
-        console.log("- starting game for " + value.socket_id_1 + " and " + value.socket_id_2);
+        console.log("- starting game for " + value.socket_id_1 + " and " + value.socket_id_2 + " ( " + room_name + " )");
 
     })
 

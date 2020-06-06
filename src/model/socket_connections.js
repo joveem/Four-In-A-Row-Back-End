@@ -5,7 +5,7 @@ var games = [];
 
 var { UpdatePlayersQuantity, FiarDealWithPublicQueue } = require('../controller/websocket');
 
-exports.OnSocketConnectionsStart = function(){
+exports.OnSocketConnectionsStart = function () {
 
     var websocket_controller = require('../controller/websocket');
 
@@ -30,6 +30,26 @@ exports.AddConnection = function (socket_id_) {
         }
 
     })
+
+    console.log("- CONNECTION ( " + connections.length + " players connected )");
+
+}
+
+exports.GetConnectionById = function (socket_id_) {
+
+    var connection = undefined;
+
+    connections.map(function (value){
+
+        if(value.socket_id == socket_id_){
+
+            connection = value;
+
+        }
+
+    })
+
+    return connection;
 
 }
 
@@ -125,11 +145,12 @@ exports.RemoveConnection = function (socket_id_) {
 
 }
 
-exports.FiarQueuePlayer = function (socket_id_, lang_) {
+exports.FiarQueuePlayer = function (socket_id_, nick_, lang_) {
 
     fiar_public_queue.push({
 
         socket_id: socket_id_,
+        nick: nick_,
         combined: false,
         langs: lang_.split(',')
 
