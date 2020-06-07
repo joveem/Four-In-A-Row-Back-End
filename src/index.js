@@ -2,9 +2,13 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var express_app = express();
 var http_server = require('http').Server(express_app);
+
+var INDEX = '/index.html';
+
 express_app.use(bodyParser.json());
 express_app.use(bodyParser.urlencoded({ extended: false }));
 express_app.use(express.static("__dirname"));
+express_app.use((req, res) => res.sendFile(INDEX, { root: __dirname }));
 
 
 var { setUpWebSockets } = require('./controller/websocket');
