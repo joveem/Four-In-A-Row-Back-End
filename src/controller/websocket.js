@@ -21,19 +21,12 @@ exports.setUpWebSockets = function (server) {
 
             var connection_already_exists = SetUpConnectionMinigame(socket.id, pack.player_id, pack.minigame_number);
 
-            var pack = {
 
-                result: "succeed"
+            socket.emit("send-connection-result-to-client", {
 
-            }
+                result: (!connection_already_exists ? "succeed" : "failed")
 
-            if (!connection_already_exists) {
-
-                pack.result = "failed";
-
-            }
-
-            socket.emit("send-connection-result-to-client", pack);
+            });
 
         })
 
