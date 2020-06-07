@@ -9,6 +9,8 @@ exports.setUpWebSockets = function (server) {
 
     io = socket_io(server);
 
+    console.log("--- SOCKET SERVERING ---")
+
     io.on('connection', function (socket) {
 
         AddConnection(socket.id);
@@ -19,7 +21,9 @@ exports.setUpWebSockets = function (server) {
 
             var connection_already_exists = SetUpConnectionMinigame(socket.id, pack.player_id, pack.minigame_number);
 
-            socket.emit("send-connection-result-to-client", { result: !connection_already_exists ? "succeed" : "failed" });
+            var result = !connection_already_exists ? "succeed" : "failed";
+
+            socket.emit("send-connection-result-to-client", { result });
 
         })
 
